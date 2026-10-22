@@ -12,21 +12,23 @@ A small APB register block (SystemVerilog) verified with cocotb and Python.
 
 \## The design
 
+
+
 `apb\_regs.sv` has 4 registers on an APB slave interface:
 
 
 
-| Address | Name    | Access     |
+| Address | Name    | Access                  |
 
-|---------|---------|------------|
+|---------|---------|-------------------------|
 
-| 0x0     | CTRL    | read/write |
+| 0x0     | CTRL    | read/write              |
 
-| 0x4     | DATA    | read/write |
+| 0x4     | DATA    | read/write              |
 
 | 0x8     | STATUS  | read only (always 0xA5) |
 
-| 0xC     | SCRATCH | read/write |
+| 0xC     | SCRATCH | read/write              |
 
 
 
@@ -36,7 +38,11 @@ A bad address, or a write to STATUS, sets `pslverr`.
 
 \## The tests
 
+
+
 `test\_apb.py` has 5 tests:
+
+
 
 \- test\_write\_read\_ctrl: write a value, read it back
 
@@ -52,6 +58,8 @@ A bad address, or a write to STATUS, sets `pslverr`.
 
 \## Bug story
 
+
+
 Bug 1: I changed the DATA write so it went into SCRATCH instead.
 
 test\_random\_vs\_model failed because the DATA read did not match the model.
@@ -62,7 +70,13 @@ I fixed the line and all 5 tests passed again.
 
 \## How to run
 
-&#x20;   make
+
+
+```
+
+make
+
+```
 
 
 
