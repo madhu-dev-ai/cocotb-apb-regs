@@ -1,6 +1,10 @@
+import random
+
 import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge
+
+covered = set()
 
 
 async def reset(dut):
@@ -17,6 +21,7 @@ async def reset(dut):
 
 
 async def apb_write(dut, addr, value):
+    covered.add(("write", addr))
     # Setup phase
     dut.psel.value = 1
     dut.penable.value = 0
@@ -36,6 +41,7 @@ async def apb_write(dut, addr, value):
 
 
 async def apb_read(dut, addr):
+    covered.add(("read", addr))
     # Setup phase
     dut.psel.value = 1
     dut.penable.value = 0
@@ -65,7 +71,33 @@ async def test_write_read_ctrl(dut):
     assert err == 0, "read of CTRL should not give an error"
     assert data == 0x12345678, f"CTRL read {data:#x}, expected 0x12345678"
 
-import random
+
+@cocotb.test()
+async def test_status_read_only(dut):
+    cocotb.start_soon(Clock(dut.pclk, 10, unit="ns").start())
+    await reset(dut)
+
+    data, err = await apb_read(dut, 0x8)
+    assert err == 0, "read of STATUS should not give an error"
+    assert data == 0xA5, f"STATUS read {data:#x}, expected 0xA5"
+
+    err = await apb_write(dut, 0x8, 0xFFFFFFFF)
+    assert err == 1, "write to STATUS should give an error"
+
+    data, err = await apb_read(dut, 0x8)
+    assert data == 0xA5, f"STATUS changed to {data:#x} after a write"
+
+
+@cocotb.test()
+async def test_bad_address(dut):
+    cocotb.start_soon(Clock(dut.pclk, 10, unit="ns").start())
+    await reset(dut)
+
+    err = await apb_write(dut, 0x1, 0xDEADBEEF)
+    assert err == 1, "write to bad address 0x1 should give an error"
+
+    data, err = await apb_read(dut, 0x2)
+    assert err == 1, "read of bad address 0x2 should give an error"
 
 
 @cocotb.test()
@@ -100,3 +132,13 @@ async def test_random_vs_model(dut):
                 expected, expected_err = 0, 1
             assert data == expected, f"op {i}: read {addr:#x} got {data:#x}, expected {expected:#x}"
             assert err == expected_err, f"op {i}: read {addr:#x} error {err}, expected {expected_err}"
+
+
+@cocotb.test()
+async def test_coverage_report(dut):
+    all_bins = {(op, a) for op in ("read", "write") for a in range(16)}
+    hit = len(covered & all_bins)
+    total = len(all_bins)
+    dut._log.info(f"COVERAGE: {hit}/{total} bins = {100 * hit // total}%")
+    missing = sorted(all_bins - covered)
+    assert not missing, f"never tested: {missing}"
