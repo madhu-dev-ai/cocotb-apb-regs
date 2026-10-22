@@ -1,3 +1,7 @@
+\[!\[tests](https://github.com/madhu-dev-ai/cocotb-apb-regs/actions/workflows/test.yml/badge.svg)](https://github.com/madhu-dev-ai/cocotb-apb-regs/actions/workflows/test.yml)
+
+
+
 \# cocotb-apb-regs
 
 
@@ -32,7 +36,7 @@ A bad address, or a write to STATUS, sets `pslverr`.
 
 \## The tests
 
-`test\_apb.py` has 4 tests:
+`test\_apb.py` has 5 tests:
 
 \- test\_write\_read\_ctrl: write a value, read it back
 
@@ -42,6 +46,8 @@ A bad address, or a write to STATUS, sets `pslverr`.
 
 \- test\_random\_vs\_model: 500 random reads and writes checked against a Python model (scoreboard)
 
+\- test\_coverage\_report: counts which (read or write, address) cases were tried, 32 in total, and fails if any case was missed
+
 
 
 \## Bug story
@@ -50,7 +56,7 @@ Bug 1: I changed the DATA write so it went into SCRATCH instead.
 
 test\_random\_vs\_model failed because the DATA read did not match the model.
 
-I fixed the line and all 4 tests passed again.
+I fixed the line and all 5 tests passed again.
 
 
 
